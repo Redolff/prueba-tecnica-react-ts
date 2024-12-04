@@ -24,6 +24,13 @@ export interface User {
     nat:        string;
 }
 
+export enum SortBy {
+    NONE = 'none',
+    NAME = 'name',
+    LAST = 'last',
+    COUNTRY = 'country',
+}
+
 export interface Dob {
     date: Date;
     age:  number;

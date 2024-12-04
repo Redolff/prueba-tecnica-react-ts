@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ListOfUsers } from "./components/ListOfUsers"
-import { User } from './types'
+import { SortBy, type User } from './types.d'
 
 export default function App() {
     const [users, setUsers] = useState<User[]>([])
     const [showColors, setShowColors] = useState<boolean>(false)
-    const [sortCountry, setSortCountry] = useState<boolean>(false)
+    const [sorting, setSorting] = useState<SortBy>(SortBy.NONE)
     const [filterCountry, setFilterCountry] = useState<string|null>(null)
 
     const originalUsers = useRef<User[]>([])
@@ -34,7 +34,12 @@ export default function App() {
     }
 
     const toggleSortByCountry = () => {
-        setSortCountry(!sortCountry)
+        const newSorting = sorting === SortBy.NONE ? SortBy.COUNTRY : SortBy.NONE
+        setSorting(newSorting)
+    }
+
+    const handleChangeSort = (sort: SortBy) => {
+        setSorting(sort)
     }
     
     const deleteUser = (email: string) => {
@@ -46,8 +51,11 @@ export default function App() {
        setUsers(originalUsers.current)
     }
 
+    const handleChangeCountry = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFilterCountry(e.target.value)
+    }
+
     const filteredUsers = useMemo(() => {
-        console.log('calculated filteredUsers')
         return filterCountry !== null && filterCountry.length > 0
             ? users.filter((user) => {
                 return user.location.country.toLowerCase().includes(filterCountry.toLowerCase())
@@ -55,30 +63,47 @@ export default function App() {
             : users
     }, [users, filterCountry])
 
-    const sortedUsers = useMemo(() => {
-        console.log('calculated sortedUsers')
+    const sortedUsers = useMemo(() => {        
+        if(sorting === SortBy.COUNTRY) {
+            return filteredUsers.toSorted(
+                (a, b) => a.location.country.localeCompare(b.location.country)
+            )
+        }
 
-        return sortCountry 
-            ? filteredUsers.toSorted((a, b) => {
-                return a.location.country.localeCompare(b.location.country)  
-            })
-            : filteredUsers
-    }, [filteredUsers, sortCountry])
+        if(sorting === SortBy.NAME) {
+            return filteredUsers.toSorted(
+                (a, b) => a.name.first.localeCompare(b.name.first)
+            )
+        }
+
+        if(sorting === SortBy.LAST) {
+            return filteredUsers.toSorted(
+                (a, b) => a.name.last.localeCompare(b.name.last)
+            )
+        }
+
+        return filteredUsers
+
+    }, [filteredUsers, sorting])
 
 
     return (    
         <>
             <h1> Prueba Tecnica - React y TypeScript </h1>
             <nav>
-                <button onClick={() => toggleColors()}> Colorear filas </button>
-                <button onClick={() => toggleSortByCountry()}> {sortCountry ? 'No ordenar por pais' : 'Ordenar por pais'} </button>
-                <button onClick={() => handleReset()}> Resetear estado </button>
+                <button onClick={() => toggleColors()}> 
+                    Colorear filas 
+                </button>
+                <button onClick={() => toggleSortByCountry()}> 
+                    {sorting === SortBy.COUNTRY ? 'No ordenar por pais' : 'Ordenar por pais'} 
+                </button>
+                <button onClick={() => handleReset()}> 
+                    Resetear estado 
+                </button>
                 <input 
                     type="text" 
                     placeholder="Filtrar por pais"
-                    onChange={(e) => {
-                        setFilterCountry(e.target.value)
-                    }}  
+                    onChange={(e) => handleChangeCountry(e)}  
                 />
             </nav>
 
@@ -87,6 +112,7 @@ export default function App() {
                     users={sortedUsers} 
                     showColors={showColors} 
                     deleteUser={deleteUser}
+                    handleChangeSort={handleChangeSort}
                 />
             </main>
         </>
