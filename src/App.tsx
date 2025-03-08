@@ -9,7 +9,6 @@ export default function App() {
         toggleSortByCountry, handleChangeSort, 
         handleChangeCountry, sortedUsers } = useSortedAndFiltered({ users })
 
-
     return (
         <>
             <h1> Prueba Tecnica - React y TypeScript </h1>
